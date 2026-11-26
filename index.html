@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Student Resource Exchange</title>
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #ffffff;
+  --card: #ffffff;
+  --tint: #ecfafc;
+  --text: #1c2a2e;
+  --muted: #5d7177;
+  --line: #c3e3e9;
+  --accent: #0e8aa0;
+  --accent-text: #ffffff;
+  --danger: #a24343;
+}
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
+header { background: var(--accent); color: var(--accent-text); padding: 22px 16px; text-align: center; }
+header h1 { margin: 0; font-size: 1.5rem; }
+header p { margin: 4px 0 0; font-size: 0.92rem; opacity: 0.9; }
+main { max-width: 900px; margin: 0 auto; padding: 20px 16px 40px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--accent); border-bottom: 2px solid var(--line); padding-bottom: 6px; }
+.box { background: var(--card); border: 1px solid var(--line); padding: 16px; margin-bottom: 24px; }
+label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--muted); }
+input, select, button { font-family: inherit; font-size: 1rem; }
+input[type="text"], input[type="search"], select, input[type="file"] {
+  width: 100%; padding: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 3px;
+}
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.full { margin-bottom: 12px; }
+button { padding: 8px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); cursor: pointer; border-radius: 3px; }
+button:hover { opacity: 0.88; }
+button.plain { background: transparent; color: var(--accent); border-color: var(--line); padding: 4px 10px; font-size: 0.85rem; }
+button.del { color: var(--danger); }
+.addcourse { display: flex; gap: 8px; margin-bottom: 16px; padding: 12px; background: var(--tint); border: 1px solid var(--line); flex-wrap: wrap; align-items: flex-end; }
+.addcourse div { flex: 1; min-width: 160px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.tabs button { background: transparent; color: var(--accent); border-color: var(--line); }
+.tabs button.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.tools input { flex: 1; min-width: 180px; }
+.item { border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+.item:first-child { border-top: none; }
+.item h3 { margin: 0 0 2px; font-size: 1rem; }
+.meta { color: var(--muted); font-size: 0.83rem; }
+.tag { background: var(--tint); border: 1px solid var(--line); color: var(--accent); padding: 0 6px; font-size: 0.75rem; margin-right: 6px; border-radius: 2px; }
+.btns { display: flex; gap: 8px; align-items: center; }
+.empty { color: var(--muted); text-align: center; padding: 20px 0; }
+#msg { margin-top: 10px; font-size: 0.9rem; min-height: 1.2em; color: var(--muted); }
+footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 0 16px 24px; }
+
+.intro { background: var(--tint); border: 1px solid var(--line); padding: 18px 16px; margin-bottom: 24px; }
+.intro p { margin: 0 0 14px; }
+.stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat { flex: 1; min-width: 100px; background: #fff; border: 1px solid var(--line); padding: 10px; text-align: center; }
+.stat b { display: block; font-size: 1.6rem; color: var(--accent); }
+.stat span { font-size: 0.8rem; color: var(--muted); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.step { border: 1px solid var(--line); padding: 12px; background: var(--tint); }
+.step b { color: var(--accent); }
+.step p { margin: 4px 0 0; font-size: 0.9rem; color: var(--muted); }
+.rules { margin: 0; padding-left: 20px; font-size: 0.92rem; }
+details { border-top: 1px solid var(--line); padding: 8px 0; }
+summary { cursor: pointer; color: var(--accent); }
+details p { margin: 6px 0 2px; font-size: 0.92rem; color: var(--muted); }
+.desc { margin: 4px 0 0; font-size: 0.9rem; }
+textarea { width: 100%; padding: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 3px; font-family: inherit; font-size: 1rem; resize: vertical; }
+@media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+
+/* file viewer */
+#viewer { display: none; position: fixed; inset: 0; background: rgba(10, 30, 36, 0.6); z-index: 20; padding: 16px; }
+#viewer.show { display: block; }
+.vbox { background: var(--card); border: 1px solid var(--line); max-width: 900px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+.vhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--tint); }
+.vhead strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#vbody { flex: 1; overflow: auto; padding: 14px; }
+#vbody img, #vbody canvas { max-width: 100%; display: block; margin: 0 auto 12px; border: 1px solid var(--line); }
+#vbody pre { white-space: pre-wrap; word-break: break-word; margin: 0; font-size: 0.88rem; }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Student Resource Exchange</h1>
+  <p>Share and find notes, assignments and past papers for your courses</p>
+</header>
+
+<main>
+  <section class="intro">
+    <p><strong>Welcome!</strong> This is a place for students to share and find study material. Upload your class notes, solved assignments, past papers and lab sheets, and browse what other students have shared for each course. Sharing a little helps everyone prepare better for quizzes and exams.</p>
+  </section>
+
+  <section class="box">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step"><b>1. Pick a course</b><p>Choose your course from the list, or add a new course code if yours is missing.</p></div>
+      <div class="step"><b>2. Upload a file</b><p>Add a clear title, a short description and your file, then press Upload.</p></div>
+      <div class="step"><b>3. Browse and view</b><p>Use the tabs, search and filters to find material, then press View to read it.</p></div>
+    </div>
+  </section>
+
+  <section class="box">
+    <h2>Upload a resource</h2>
+
+    <div class="addcourse">
+      <div>
+        <label for="newCourse">Course not listed? Add it here</label>
+        <input type="text" id="newCourse" placeholder="e.g. EEE101" maxlength="12">
+      </div>
+      <button id="addCourseBtn">Add course</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="course">Course</label>
+        <select id="course"></select>
+      </div>
+      <div>
+        <label for="type">Type</label>
+        <select id="type">
+          <option>Notes</option>
+          <option>Assignment</option>
+          <option>Past paper</option>
+          <option>Lab sheet</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder="e.g. Limits and continuity notes">
+      </div>
+      <div>
+        <label for="name">Your name</label>
+        <input type="text" id="name" placeholder="optional">
+      </div>
+    </div>
+    <div class="full">
+      <label for="desc">Short description (what topics does it cover?)</label>
+      <textarea id="desc" rows="2" maxlength="200" placeholder="e.g. Chapter 3 summary with solved examples"></textarea>
+    </div>
+    <div class="full">
+      <label for="file">File (PDF, image, text or any document)</label>
+      <input type="file" id="file">
+    </div>
+    <button id="uploadBtn">Upload</button>
+    <div id="msg"></div>
+  </section>
+
+  <section class="box">
+    <h2>Resources</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="tools">
+      <input type="search" id="search" placeholder="Search by title or name">
+      <select id="typeFilter" style="width:auto">
+        <option value="All">All types</option>
+        <option>Notes</option>
+        <option>Assignment</option>
+        <option>Past paper</option>
+        <option>Lab sheet</option>
+        <option>Other</option>
+      </select>
+      <select id="sort" style="width:auto">
+        <option value="new">Newest first</option>
+        <option value="old">Oldest first</option>
+        <option value="az">Title A–Z</option>
+      </select>
+    </div>
+    <div id="list"></div>
+  </section>
+  <section class="box">
+    <h2>Upload guidelines</h2>
+    <ul class="rules">
+      <li>Only share your own notes and work, or material your teacher has allowed you to share.</li>
+      <li>Give files a clear title, for example “MTH165 – Integration practice set”.</li>
+      <li>Choose the correct course and type so others can find it quickly.</li>
+      <li>Do not upload anything offensive or copied from a paid book.</li>
+      <li>Keep files under 25 MB.</li>
+    </ul>
+  </section>
+
+  <section class="box">
+    <h2>Frequently asked questions</h2>
+    <details><summary>Which files can I view on the page?</summary><p>PDFs, images and plain text or code files open directly in the viewer. Other files, such as Word documents, need to be downloaded first.</p></details>
+    <details><summary>Where are my uploads stored?</summary><p>They are saved in your own browser on this device, so other people cannot see them yet. A server would be needed for real sharing.</p></details>
+    <details><summary>My course is not listed. What do I do?</summary><p>Type the course code in the “Add course” box above the upload form. It will appear in the dropdown and the tabs.</p></details>
+    <details><summary>Can I delete something I uploaded by mistake?</summary><p>Yes. Press Delete next to the resource in the list.</p></details>
+  </section>
+</main>
+
+<footer>Files are saved in this browser only, so they stay on your device.</footer>
+
+<div id="viewer">
+  <div class="vbox">
+    <div class="vhead">
+      <strong id="vtitle"></strong>
+      <div class="btns">
+        <button class="plain" id="vdl">Download</button>
+        <button class="plain" id="vclose">Close</button>
+      </div>
+    </div>
+    <div id="vbody"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+var db = null;
+var items = [];
+var currentCourse = "All";
+var currentItem = null;
+var courses = ["MTH165", "CSE111", "PHY175", "CSE326", "CHE110"];
+
+// ---------- courses ----------
+function loadCourses() {
+  try {
+    var saved = localStorage.getItem("courses");
+    if (saved) {
+      var arr = JSON.parse(saved);
+      arr.forEach(function (c) {
+        if (courses.indexOf(c) === -1) courses.push(c);
+      });
+    }
+  } catch (e) {}
+}
+
+function saveCourses() {
+  try { localStorage.setItem("courses", JSON.stringify(courses)); } catch (e) {}
+}
+
+function drawCourses() {
+  var select = document.getElementById("course");
+  var tabs = document.getElementById("tabs");
+  select.innerHTML = "";
+  tabs.innerHTML = "";
+
+  var all = ["All"].concat(courses);
+  all.forEach(function (c) {
+    if (c !== "All") {
+      var opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      select.appendChild(opt);
+    }
+    var b = document.createElement("button");
+    b.setAttribute("data-c", c);
+    b.textContent = c;
+    if (c === currentCourse) b.className = "active";
+    b.onclick = function () {
+      currentCourse = c;
+      drawCourses();
+      render();
+    };
+    tabs.appendChild(b);
+  });
+  updateCounts();
+}
+
+function addCourse() {
+  var input = document.getElementById("newCourse");
+  var name = input.value.trim().toUpperCase();
+  if (name === "") { showMsg("Type a course code first."); return; }
+  if (courses.indexOf(name) !== -1) { showMsg(name + " is already in the list."); return; }
+  courses.push(name);
+  saveCourses();
+  input.value = "";
+  drawCourses();
+  document.getElementById("course").value = name;
+  showMsg("Added " + name + ". You can upload to it now.");
+}
+
+// ---------- storage ----------
+function openDB(callback) {
+  try {
+    var req = indexedDB.open("resourceExchange", 1);
+    req.onupgradeneeded = function () {
+      req.result.createObjectStore("files", { keyPath: "id" });
+    };
+    req.onsuccess = function () { db = req.result; callback(); };
+    req.onerror = function () { showMsg("Could not open storage in this browser."); callback(); };
+  } catch (e) {
+    showMsg("Storage is not available here.");
+    callback();
+  }
+}
+
+function loadAll() {
+  if (!db) { render(); return; }
+  try {
+    var req = db.transaction("files", "readonly").objectStore("files").getAll();
+    req.onsuccess = function () { items = req.result; render(); };
+  } catch (e) { render(); }
+}
+
+function showMsg(text) { document.getElementById("msg").textContent = text; }
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+function formatDate(ms) {
+  return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// ---------- counts and stats ----------
+function updateCounts() {
+  // number of resources shown on each tab
+  var buttons = document.querySelectorAll("#tabs button");
+  buttons.forEach(function (b) {
+    var c = b.getAttribute("data-c");
+    var n = items.filter(function (it) { return c === "All" || it.course === c; }).length;
+    b.textContent = c + " (" + n + ")";
+  });
+}
+
+// ---------- list ----------
+function render() {
+  updateCounts();
+  var list = document.getElementById("list");
+  var typeF = document.getElementById("typeFilter").value;
+  var q = document.getElementById("search").value.toLowerCase();
+  var sort = document.getElementById("sort").value;
+
+  var shown = items.filter(function (it) {
+    var okCourse = currentCourse === "All" || it.course === currentCourse;
+    var okType = typeF === "All" || it.type === typeF;
+    var okSearch = (it.title + " " + it.uploader + " " + (it.desc || "")).toLowerCase().indexOf(q) !== -1;
+    return okCourse && okType && okSearch;
+  });
+
+  shown.sort(function (a, b) {
+    if (sort === "new") return b.date - a.date;
+    if (sort === "old") return a.date - b.date;
+    return a.title.localeCompare(b.title);
+  });
+
+  list.innerHTML = "";
+  if (shown.length === 0) {
+    var p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = items.length === 0 ? "Nothing uploaded yet. Be the first to share something!" : "No resources match.";
+    list.appendChild(p);
+    return;
+  }
+
+  shown.forEach(function (it) {
+    var div = document.createElement("div");
+    div.className = "item";
+
+    var left = document.createElement("div");
+    var h3 = document.createElement("h3");
+    h3.textContent = it.title;
+    var meta = document.createElement("div");
+    meta.className = "meta";
+    var t1 = document.createElement("span");
+    t1.className = "tag";
+    t1.textContent = it.course;
+    var t2 = document.createElement("span");
+    t2.className = "tag";
+    t2.textContent = it.type;
+    meta.appendChild(t1);
+    meta.appendChild(t2);
+    meta.appendChild(document.createTextNode(
+      it.fileName + " · " + formatSize(it.size) + " · by " + it.uploader + " · " + formatDate(it.date)
+    ));
+    left.appendChild(h3);
+    left.appendChild(meta);
+    if (it.desc) {
+      var d = document.createElement("p");
+      d.className = "desc";
+      d.textContent = it.desc;
+      left.appendChild(d);
+    }
+
+    var btns = document.createElement("div");
+    btns.className = "btns";
+    var view = document.createElement("button");
+    view.className = "plain";
+    view.textContent = "View";
+    view.onclick = function () { viewFile(it); };
+    var del = document.createElement("button");
+    del.className = "plain del";
+    del.textContent = "Delete";
+    del.onclick = function () {
+      // first click asks to confirm, second click deletes
+      if (del.textContent === "Delete") {
+        del.textContent = "Sure? Click again";
+        setTimeout(function () { del.textContent = "Delete"; }, 3000);
+      } else {
+        deleteItem(it.id);
+      }
+    };
+    btns.appendChild(view);
+    btns.appendChild(del);
+
+    div.appendChild(left);
+    div.appendChild(btns);
+    list.appendChild(div);
+  });
+}
+
+// ---------- viewer (shows the file inside the page) ----------
+function viewFile(it) {
+  currentItem = it;
+  var body = document.getElementById("vbody");
+  body.innerHTML = "<p>Loading…</p>";
+  document.getElementById("vtitle").textContent = it.title + " (" + it.fileName + ")";
+  document.getElementById("viewer").className = "show";
+
+  var name = it.fileName.toLowerCase();
+  var type = it.blob.type || "";
+  var isImage = type.indexOf("image/") === 0;
+  var isPdf = type === "application/pdf" || name.slice(-4) === ".pdf";
+  var isText = type.indexOf("text/") === 0 || /\.(txt|md|csv|c|cpp|h|java|py|js|html|css|json)$/.test(name);
+
+  if (isImage) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      body.innerHTML = "";
+      var img = document.createElement("img");
+      img.src = reader.result;
+      img.alt = it.title;
+      body.appendChild(img);
+    };
+    reader.readAsDataURL(it.blob);
+  } else if (isText) {
+    it.blob.text().then(function (txt) {
+      body.innerHTML = "";
+      var pre = document.createElement("pre");
+      pre.textContent = txt;
+      body.appendChild(pre);
+    });
+  } else if (isPdf) {
+    showPdf(it, body);
+  } else {
+    body.innerHTML = "";
+    var p = document.createElement("p");
+    p.textContent = "This file type (" + it.fileName.split(".").pop() + ") can’t be previewed in the browser. Use the Download button to open it on your device.";
+    body.appendChild(p);
+  }
+}
+
+function showPdf(it, body) {
+  if (typeof pdfjsLib === "undefined") {
+    body.textContent = "The PDF viewer could not load. Check your internet connection and try again.";
+    return;
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  it.blob.arrayBuffer().then(function (buf) {
+    return pdfjsLib.getDocument({ data: buf }).promise;
+  }).then(function (pdf) {
+    body.innerHTML = "";
+    var pageNum = 1;
+    function nextPage() {
+      if (pageNum > pdf.numPages) return;
+      pdf.getPage(pageNum).then(function (page) {
+        var width = Math.min(body.clientWidth - 30, 800);
+        var base = page.getViewport({ scale: 1 });
+        var viewport = page.getViewport({ scale: width / base.width });
+        var canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        body.appendChild(canvas);
+        return page.render({ canvasContext: canvas.getContext("2d"), viewport: viewport }).promise;
+      }).then(function () {
+        pageNum++;
+        nextPage();
+      });
+    }
+    nextPage();
+  }).catch(function () {
+    body.textContent = "Sorry, this PDF could not be shown. Try the Download button.";
+  });
+}
+
+function closeViewer() {
+  document.getElementById("viewer").className = "";
+  document.getElementById("vbody").innerHTML = "";
+  currentItem = null;
+}
+
+function downloadCurrent() {
+  if (!currentItem) return;
+  var url = URL.createObjectURL(currentItem.blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = currentItem.fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ---------- delete / upload ----------
+function deleteItem(id) {
+  try {
+    var tx = db.transaction("files", "readwrite");
+    tx.objectStore("files").delete(id);
+    tx.oncomplete = loadAll;
+  } catch (e) { showMsg("Could not delete."); }
+}
+
+function upload() {
+  var title = document.getElementById("title").value.trim();
+  var name = document.getElementById("name").value.trim();
+  var fileInput = document.getElementById("file");
+  var file = fileInput.files[0];
+
+  if (title === "") { showMsg("Please enter a title."); return; }
+  if (!file) { showMsg("Please choose a file."); return; }
+  if (file.size > 25 * 1024 * 1024) { showMsg("File is too big (max 25 MB)."); return; }
+  if (!db) { showMsg("Storage is not available, so the file can’t be saved."); return; }
+
+  var record = {
+    id: Date.now() + "-" + Math.floor(Math.random() * 1000),
+    course: document.getElementById("course").value,
+    type: document.getElementById("type").value,
+    title: title,
+    desc: document.getElementById("desc").value.trim(),
+    uploader: name === "" ? "Anonymous" : name,
+    fileName: file.name,
+    size: file.size,
+    date: Date.now(),
+    blob: file
+  };
+
+  try {
+    var tx = db.transaction("files", "readwrite");
+    tx.objectStore("files").add(record);
+    tx.oncomplete = function () {
+      showMsg("Uploaded “" + title + "” to " + record.course + ".");
+      document.getElementById("title").value = "";
+      document.getElementById("desc").value = "";
+      fileInput.value = "";
+      loadAll();
+    };
+    tx.onerror = function () { showMsg("Upload failed. Try again."); };
+  } catch (e) { showMsg("Upload failed. Try again."); }
+}
+
+document.getElementById("uploadBtn").onclick = upload;
+document.getElementById("addCourseBtn").onclick = addCourse;
+document.getElementById("newCourse").onkeydown = function (e) { if (e.key === "Enter") addCourse(); };
+document.getElementById("search").oninput = render;
+document.getElementById("sort").onchange = render;
+document.getElementById("typeFilter").onchange = render;
+document.getElementById("vclose").onclick = closeViewer;
+document.getElementById("vdl").onclick = downloadCurrent;
+
+loadCourses();
+drawCourses();
+openDB(loadAll);
+</script>
+</body>
+</html>
